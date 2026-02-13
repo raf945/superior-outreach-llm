@@ -19,14 +19,13 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# ✅ Initialize Async Client
+#Initialize Async Client
 # Ensure OPENAI_API_KEY is in your environment variables, not code!
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
-# ✅ Secure Memory: Keeps max 1000 sessions, expires them after 1 hour (3600s)
-# This prevents RAM exhaustion attacks.
+# Keeps max 1000 sessions, expires them after 1 hour (3600s)
 session_cache = TTLCache(maxsize=1000, ttl=3600)
 chat_memory: Dict[str, Deque] = defaultdict(lambda: deque(maxlen=5))
 
@@ -45,8 +44,8 @@ app.add_middleware(
         "http://127.0.0.1:8000"
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"], # Restrict methods to what you use
-    allow_headers=["Authorization", "Content-Type"], # Restrict headers
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # ✅ Standard StaticFiles is usually sufficient for .js
@@ -71,16 +70,14 @@ async def chat_with_llm(request: PromptRequest):
         # Retrieve history safely
         history = get_chat_history(session_id)
 
-        # (Placeholder for your vectorstore logic)
-        # relevant_docs = await vectorstore.asimilarity_search(user_query_raw, k=3) 
-        # For this example, we assume context is empty string if vectorstore is missing
+        # Placeholder for your vectorstore logic
         context = "" 
 
         logger.info(f"Session {session_id}: Processing message")
 
-        # ✅ Use Async Call
+        # Use Async Call
         response = await client.chat.completions.create(
-            model="gpt-4o-mini", # Corrected model name (check availability)
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -103,7 +100,7 @@ async def chat_with_llm(request: PromptRequest):
         return {"response": assistant_message}
 
     except Exception as e:
-        # ✅ Secure Error Handling
-        logger.error(f"Error processing chat: {e}") # Log the real error for YOU
+        # Secure Error Handling
+        logger.error(f"Error processing chat: {e}") 
         # Return generic error to USER
         raise HTTPException(status_code=500, detail="Internal Service Error")
