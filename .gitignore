@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+.vscode/
+#Only load data needed for chat bot
+.data/
+# Ignore test/demo HTML
+.frontend-dev/
+.junk/
+tools/
+.virtualenvvenv/
+virtualenv/
