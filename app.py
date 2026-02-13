@@ -9,27 +9,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from openai import AsyncOpenAI  # Use Async Client
+from openai import AsyncOpenAI
 from dotenv import load_dotenv
 from cachetools import TTLCache
 
-# Setup logging (Safe for production)
+# Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 #Initialize Async Client
-# Ensure OPENAI_API_KEY is in your environment variables, not code!
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
-# Keeps max 1000 sessions, expires them after 1 hour (3600s)
+# Keeps max 1000 sessions, expires them after 1 hour
 session_cache = TTLCache(maxsize=1000, ttl=3600)
 chat_memory: Dict[str, Deque] = defaultdict(lambda: deque(maxlen=5))
 
-# Wrapper to link cachetools with your deque structure
+# Wrapper to link cachetools with deque structure
 def get_chat_history(session_id: str):
     if session_id not in session_cache:
         session_cache[session_id] = deque(maxlen=5)
@@ -48,10 +47,10 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-# ✅ Standard StaticFiles is usually sufficient for .js
+# Standard StaticFiles is usually sufficient for .js
 app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="static")
 
-# ✅ Input Validation (Prevents huge payloads)
+# Input Validation
 class PromptRequest(BaseModel):
     message: str = Field(..., max_length=2000, description="Limit input to 2000 chars")
     session_id: str = Field(..., max_length=100, pattern="^[a-zA-Z0-9_-]+$")
